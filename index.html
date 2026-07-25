@@ -145,6 +145,43 @@
         </div>
       </div>
 
+      <!-- Transactions Section Card -->
+      <div class="card transactions-card">
+        <div class="section-header">
+          <h3>Recent Transactions</h3>
+          <button id="btn-toggle-add-transaction" class="btn btn-secondary btn-sm">+ Add Transaction</button>
+        </div>
+
+        <!-- Inline Add Transaction Form (Hidden by default) -->
+        <form id="add-transaction-form" class="inline-transaction-form hidden">
+          <div class="form-group">
+            <label for="transaction-amount">Amount</label>
+            <input type="number" id="transaction-amount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="transaction-type">Transaction Type</label>
+            <select id="transaction-type" required>
+              <option value="SPEND">SPEND</option>
+              <option value="INCOME">INCOME</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transaction-category">Category</label>
+            <input type="text" id="transaction-category" placeholder="e.g. Food, Fuel, Salary" required>
+          </div>
+          <div class="form-group">
+            <label for="transaction-note">Note (Optional)</label>
+            <input type="text" id="transaction-note" placeholder="e.g. Starbucks coffee">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Transaction</button>
+        </form>
+
+        <!-- Transactions List Container -->
+        <div id="transactions-list" class="transactions-list">
+          <!-- Dynamically populated via script.js -->
+        </div>
+      </div>
+
     </div>
 
   </div>

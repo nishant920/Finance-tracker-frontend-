@@ -43,11 +43,15 @@ const dashboardContainer = document.getElementById("dashboard-container");
 // Forms & Action Controls
 const loginForm = document.getElementById("login-form");
 const signupForm = document.getElementById("signup-form");
+
 const updateBalanceForm = document.getElementById("update-balance-form");
 const btnToggleUpdateBalance = document.getElementById("btn-toggle-update-balance");
 
 const addCommitmentForm = document.getElementById("add-commitment-form");
 const btnToggleAddCommitment = document.getElementById("btn-toggle-add-commitment");
+
+const addTransactionForm = document.getElementById("add-transaction-form");
+const btnToggleAddTransaction = document.getElementById("btn-toggle-add-transaction");
 
 // Input Fields
 const loginEmailInput = document.getElementById("login-email");
@@ -64,9 +68,15 @@ const commitmentAmountInput = document.getElementById("commitment-amount");
 const commitmentDateInput = document.getElementById("commitment-date");
 const commitmentFrequencySelect = document.getElementById("commitment-frequency");
 
+const transactionAmountInput = document.getElementById("transaction-amount");
+const transactionTypeSelect = document.getElementById("transaction-type");
+const transactionCategoryInput = document.getElementById("transaction-category");
+const transactionNoteInput = document.getElementById("transaction-note");
+
 // Display Elements & Alert Boxes
 const freeToSpendAmount = document.getElementById("free-to-spend-amount");
 const commitmentsList = document.getElementById("commitments-list");
+const transactionsList = document.getElementById("transactions-list");
 
 const loginAlert = document.getElementById("login-alert");
 const signupAlert = document.getElementById("signup-alert");
@@ -106,7 +116,7 @@ function showSignupForm() {
 }
 
 /**
- * Switch view to show the Dashboard Screen and load user balance & commitments
+ * Switch view to show the Dashboard Screen and load user data
  */
 function showDashboardView() {
   hideAlert(dashboardAlert);
@@ -114,9 +124,10 @@ function showDashboardView() {
   signupCard.classList.add("hidden");
   dashboardContainer.classList.remove("hidden");
 
-  // Fetch balance and commitments on dashboard load
+  // Fetch balance, commitments, and transaction history on load
   fetchFreeToSpend();
   fetchCommitments();
+  fetchTransactions();
 }
 
 /**
@@ -141,7 +152,7 @@ function hideAlert(alertElement) {
 
 
 // --------------------------------------------------------------------------
-// 4. API CALL & RENDER HANDLERS (BALANCE & COMMITMENTS)
+// 4. API CALL & RENDER HANDLERS (BALANCE, COMMITMENTS, TRANSACTIONS)
 // --------------------------------------------------------------------------
 
 /**
@@ -299,7 +310,6 @@ function renderCommitments(commitments) {
     commitmentsList.appendChild(itemDiv);
   });
 
-  // Attach click listeners to "Mark as Paid" buttons
   document.querySelectorAll(".btn-mark-paid").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const id = e.target.getAttribute("data-id");
@@ -346,7 +356,6 @@ async function handleAddCommitment(event) {
     addCommitmentForm.reset();
     addCommitmentForm.classList.add("hidden");
     
-    // Refetch commitments list and free-to-spend balance
     fetchCommitments();
     fetchFreeToSpend();
 
@@ -380,13 +389,134 @@ async function handleMarkAsPaid(commitmentId) {
       return;
     }
 
-    // Refetch commitments list and free-to-spend balance
     fetchCommitments();
     fetchFreeToSpend();
 
   } catch (error) {
     console.error("Mark as paid error:", error);
     showAlert(dashboardAlert, "Unable to connect to server to mark commitment as paid.", true);
+  }
+}
+
+/**
+ * Fetches the user's transaction history from GET /api/transactions
+ */
+async function fetchTransactions() {
+  const token = getAuthToken();
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to load transactions";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    const transactions = await response.json();
+    renderTransactions(transactions);
+
+  } catch (error) {
+    console.error("Fetch transactions error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to fetch transactions.", true);
+  }
+}
+
+/**
+ * Renders the array of transactions into the DOM list
+ */
+function renderTransactions(transactions) {
+  transactionsList.innerHTML = "";
+
+  if (!transactions || transactions.length === 0) {
+    transactionsList.innerHTML = `<p class="empty-state">No transactions recorded yet.</p>`;
+    return;
+  }
+
+  transactions.forEach(item => {
+    const isSpend = item.transactionType === "SPEND";
+    const amountClass = isSpend ? "transaction-amount-spend" : "transaction-amount-income";
+    const badgeClass = isSpend ? "badge-spend" : "badge-income";
+    const sign = isSpend ? "-" : "+";
+    const formattedAmount = `${sign}₹${Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    // Format ISO timestamp into readable date & time (e.g. 25 Jul 2026, 08:30 PM)
+    const formattedTime = new Date(item.timestamp).toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "transaction-item";
+    itemDiv.innerHTML = `
+      <div class="transaction-info">
+        <h4>${item.category}</h4>
+        <div class="transaction-meta">
+          <span>${formattedTime}</span>
+          ${item.note ? `<span>• ${item.note}</span>` : ''}
+        </div>
+      </div>
+      <div class="transaction-right">
+        <span class="${amountClass}">${formattedAmount}</span>
+        <span class="badge ${badgeClass}">${item.transactionType}</span>
+      </div>
+    `;
+
+    transactionsList.appendChild(itemDiv);
+  });
+}
+
+/**
+ * Handles recording a new transaction via POST /api/transactions
+ */
+async function handleAddTransaction(event) {
+  event.preventDefault();
+  hideAlert(dashboardAlert);
+
+  const token = getAuthToken();
+  if (!token) return;
+
+  const payload = {
+    amount: parseFloat(transactionAmountInput.value),
+    transactionType: transactionTypeSelect.value,
+    category: transactionCategoryInput.value.trim(),
+    note: transactionNoteInput.value.trim() || null
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to record transaction";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    addTransactionForm.reset();
+    addTransactionForm.classList.add("hidden");
+
+    // Refetch transactions list and free-to-spend balance (and current balance)
+    fetchTransactions();
+    fetchFreeToSpend();
+
+  } catch (error) {
+    console.error("Add transaction error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to record transaction.", true);
   }
 }
 
@@ -513,6 +643,7 @@ signupForm.addEventListener("submit", handleSignup);
 loginForm.addEventListener("submit", handleLogin);
 updateBalanceForm.addEventListener("submit", handleUpdateBalance);
 addCommitmentForm.addEventListener("submit", handleAddCommitment);
+addTransactionForm.addEventListener("submit", handleAddTransaction);
 
 // Toggle inline update balance form
 btnToggleUpdateBalance.addEventListener("click", () => {
@@ -524,6 +655,12 @@ btnToggleUpdateBalance.addEventListener("click", () => {
 btnToggleAddCommitment.addEventListener("click", () => {
   hideAlert(dashboardAlert);
   addCommitmentForm.classList.toggle("hidden");
+});
+
+// Toggle inline add transaction form
+btnToggleAddTransaction.addEventListener("click", () => {
+  hideAlert(dashboardAlert);
+  addTransactionForm.classList.toggle("hidden");
 });
 
 // Run session check when page loads
