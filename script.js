@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 // Backend API Base URL configuration - change this easily for deployment
-const API_BASE_URL = "http://16.192.93.16:8080/api";
+const API_BASE_URL = "http://16.171.253.225:8080/api";
 
 /**
  * Retrieve the JWT token stored in browser localStorage
