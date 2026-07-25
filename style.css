@@ -45,7 +45,7 @@ body {
 /* Main Container */
 .app-container {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
 }
 
 /* Centered Glassmorphism Card */
@@ -59,7 +59,7 @@ body {
 
 .card-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .card-header h2 {
@@ -126,6 +126,15 @@ body {
   background-color: var(--primary-hover);
 }
 
+.btn-secondary {
+  background-color: var(--card-border);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background-color: var(--input-border);
+}
+
 /* Footer / Switch View Links */
 .card-footer {
   text-align: center;
@@ -154,6 +163,7 @@ body {
   margin-bottom: 1.25rem;
   display: none; /* Hidden by default */
   line-height: 1.4;
+  text-align: center;
 }
 
 .alert-error {
@@ -168,13 +178,53 @@ body {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+/* Dashboard Styling */
+.dashboard-card {
+  text-align: center;
+}
+
+.balance-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.balance-value {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1.25rem;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.balance-actions {
+  margin-top: 1rem;
+}
+
+.inline-form {
+  margin-top: 1rem;
+}
+
+.inline-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.inline-group input {
+  flex: 1;
+}
+
+.btn-inline {
+  width: auto;
+  padding: 0.75rem 1.25rem;
+  margin-top: 0;
+}
+
 /* Utility to hide/show views */
 .hidden {
   display: none !important;
-}
-
-/* Dashboard Placeholder (for future prompts) */
-#dashboard-container {
-  width: 100%;
-  max-width: 900px;
 }

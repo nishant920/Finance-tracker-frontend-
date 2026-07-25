@@ -40,9 +40,11 @@ const loginCard = document.getElementById("login-card");
 const signupCard = document.getElementById("signup-card");
 const dashboardContainer = document.getElementById("dashboard-container");
 
-// Forms
+// Forms & Action Controls
 const loginForm = document.getElementById("login-form");
 const signupForm = document.getElementById("signup-form");
+const updateBalanceForm = document.getElementById("update-balance-form");
+const btnToggleUpdateBalance = document.getElementById("btn-toggle-update-balance");
 
 // Input Fields
 const loginEmailInput = document.getElementById("login-email");
@@ -52,9 +54,13 @@ const signupNameInput = document.getElementById("signup-name");
 const signupEmailInput = document.getElementById("signup-email");
 const signupPasswordInput = document.getElementById("signup-password");
 
-// Alert Boxes for Messages & Errors
+const updateBalanceInput = document.getElementById("update-balance-input");
+
+// Display Elements & Alert Boxes
+const freeToSpendAmount = document.getElementById("free-to-spend-amount");
 const loginAlert = document.getElementById("login-alert");
 const signupAlert = document.getElementById("signup-alert");
+const dashboardAlert = document.getElementById("dashboard-alert");
 
 // Switch Screen Links
 const linkToSignup = document.getElementById("link-to-signup");
@@ -71,6 +77,7 @@ const linkToLogin = document.getElementById("link-to-login");
 function showLoginForm() {
   hideAlert(loginAlert);
   hideAlert(signupAlert);
+  hideAlert(dashboardAlert);
   signupCard.classList.add("hidden");
   dashboardContainer.classList.add("hidden");
   loginCard.classList.remove("hidden");
@@ -82,18 +89,23 @@ function showLoginForm() {
 function showSignupForm() {
   hideAlert(loginAlert);
   hideAlert(signupAlert);
+  hideAlert(dashboardAlert);
   loginCard.classList.add("hidden");
   dashboardContainer.classList.add("hidden");
   signupCard.classList.remove("hidden");
 }
 
 /**
- * Switch view to show the Dashboard Screen after successful login
+ * Switch view to show the Dashboard Screen and load user balance
  */
 function showDashboardView() {
+  hideAlert(dashboardAlert);
   loginCard.classList.add("hidden");
   signupCard.classList.add("hidden");
   dashboardContainer.classList.remove("hidden");
+
+  // Fetch and display free-to-spend balance on dashboard load
+  fetchFreeToSpend();
 }
 
 /**
@@ -122,21 +134,111 @@ function hideAlert(alertElement) {
 // --------------------------------------------------------------------------
 
 /**
+ * Fetches the user's current Free-to-Spend balance from GET /api/balance/free-to-spend
+ */
+async function fetchFreeToSpend() {
+  const token = getAuthToken();
+  if (!token) {
+    showLoginForm();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/balance/free-to-spend`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      // Token expired or invalid -> logout user
+      removeAuthToken();
+      showLoginForm();
+      showAlert(loginAlert, "Session expired. Please log in again.", true);
+      return;
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to load balance";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    // Response body contains the balance number (e.g. 50000.00)
+    const balanceText = await response.text();
+    const balanceNum = parseFloat(balanceText) || 0;
+
+    // Display formatted currency string (e.g. ₹50,000.00)
+    freeToSpendAmount.textContent = `₹${balanceNum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  } catch (error) {
+    console.error("Fetch balance error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to fetch balance.", true);
+  }
+}
+
+/**
+ * Handles setting/updating the user's balance via PUT /api/balance
+ */
+async function handleUpdateBalance(event) {
+  event.preventDefault();
+  hideAlert(dashboardAlert);
+
+  const token = getAuthToken();
+  if (!token) {
+    showLoginForm();
+    return;
+  }
+
+  const newBalance = parseFloat(updateBalanceInput.value);
+  if (isNaN(newBalance) || newBalance < 0) {
+    showAlert(dashboardAlert, "Please enter a valid balance amount.", true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/balance`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ balance: newBalance })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to update balance";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    // Success flow: hide inline form, clear input, refetch and re-display free-to-spend
+    updateBalanceForm.reset();
+    updateBalanceForm.classList.add("hidden");
+    fetchFreeToSpend();
+
+  } catch (error) {
+    console.error("Update balance error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to update balance.", true);
+  }
+}
+
+/**
  * Handles User Signup / Registration
  * Endpoint: POST /api/auth/save
  */
 async function handleSignup(event) {
-  // Prevent default HTML form refresh
   event.preventDefault();
   hideAlert(signupAlert);
 
-  // Extract user input values
   const name = signupNameInput.value.trim();
   const email = signupEmailInput.value.trim();
   const password = signupPasswordInput.value;
 
   try {
-    // Send HTTP POST request to backend API
     const response = await fetch(`${API_BASE_URL}/auth/save`, {
       method: "POST",
       headers: {
@@ -147,20 +249,16 @@ async function handleSignup(event) {
 
     const data = await response.json();
 
-    // Check if HTTP response status is NOT 2xx (e.g. 400 or 409 error)
     if (!response.ok) {
-      // Extract user-friendly error message from backend ErrorResponse object
       const errorMessage = data.message || data.error || "Failed to register account";
       showAlert(signupAlert, errorMessage, true);
       return;
     }
 
-    // Success flow
     signupForm.reset();
     showAlert(signupAlert, "Check your email to verify your account, then log in", false);
 
   } catch (error) {
-    // Catch network failures or backend unreachable errors
     console.error("Signup error:", error);
     showAlert(signupAlert, "Unable to connect to backend server. Please make sure backend is running.", true);
   }
@@ -171,16 +269,13 @@ async function handleSignup(event) {
  * Endpoint: POST /api/auth/login
  */
 async function handleLogin(event) {
-  // Prevent default HTML form refresh
   event.preventDefault();
   hideAlert(loginAlert);
 
-  // Extract user input values
   const email = loginEmailInput.value.trim();
   const password = loginPasswordInput.value;
 
   try {
-    // Send HTTP POST request to backend login endpoint
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -189,27 +284,20 @@ async function handleLogin(event) {
       body: JSON.stringify({ email, password })
     });
 
-    // Handle plain text JWT token or JSON error response
     if (response.ok) {
-      // Login endpoint returns raw JWT string token
       const token = await response.text();
-
-      // Store token in localStorage so user stays logged in after page refresh
       setAuthToken(token);
       console.log("Logged in successfully! Token persisted in localStorage.");
 
-      // Clear input fields and transition to Dashboard view
       loginForm.reset();
       showDashboardView();
 
     } else {
-      // If error response returned JSON (from GlobalExceptionHandler)
       let errorMessage = "Invalid email or password";
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
       } catch (e) {
-        // Fallback if response is text
         const errorText = await response.text();
         if (errorText) errorMessage = errorText;
       }
@@ -218,7 +306,6 @@ async function handleLogin(event) {
     }
 
   } catch (error) {
-    // Catch network failures or server offline errors
     console.error("Login error:", error);
     showAlert(loginAlert, "Unable to connect to backend server. Please check your connection.", true);
   }
@@ -255,6 +342,13 @@ linkToLogin.addEventListener("click", showLoginForm);
 // Form submit handlers
 signupForm.addEventListener("submit", handleSignup);
 loginForm.addEventListener("submit", handleLogin);
+updateBalanceForm.addEventListener("submit", handleUpdateBalance);
+
+// Toggle inline update balance form
+btnToggleUpdateBalance.addEventListener("click", () => {
+  hideAlert(dashboardAlert);
+  updateBalanceForm.classList.toggle("hidden");
+});
 
 // Run session check when page loads
 window.addEventListener("DOMContentLoaded", checkExistingSession);
