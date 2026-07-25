@@ -303,17 +303,29 @@ function renderCommitments(commitments) {
       <div class="commitment-right">
         <span class="commitment-amount">${formattedAmount}</span>
         <span class="badge ${statusBadgeClass}">${item.status}</span>
-        ${isPending ? `<button class="btn btn-sm btn-outline btn-mark-paid" data-id="${item.id}">Mark as Paid</button>` : ''}
+        <div class="action-buttons">
+          ${isPending ? `<button class="btn btn-sm btn-outline btn-mark-paid" data-id="${item.id}">Mark as Paid</button>` : ''}
+          <button class="btn btn-sm btn-danger btn-delete-commitment" data-id="${item.id}">Delete</button>
+        </div>
       </div>
     `;
 
     commitmentsList.appendChild(itemDiv);
   });
 
+  // Attach click listeners to "Mark as Paid" buttons
   document.querySelectorAll(".btn-mark-paid").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const id = e.target.getAttribute("data-id");
       handleMarkAsPaid(id);
+    });
+  });
+
+  // Attach click listeners to "Delete" buttons
+  document.querySelectorAll(".btn-delete-commitment").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      handleDeleteCommitment(id);
     });
   });
 }
@@ -395,6 +407,40 @@ async function handleMarkAsPaid(commitmentId) {
   } catch (error) {
     console.error("Mark as paid error:", error);
     showAlert(dashboardAlert, "Unable to connect to server to mark commitment as paid.", true);
+  }
+}
+
+/**
+ * Handles deleting a commitment via DELETE /api/commitments/{id}
+ */
+async function handleDeleteCommitment(commitmentId) {
+  hideAlert(dashboardAlert);
+
+  const token = getAuthToken();
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/commitments/${commitmentId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to delete commitment";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    // Refetch commitments list and free-to-spend balance
+    fetchCommitments();
+    fetchFreeToSpend();
+
+  } catch (error) {
+    console.error("Delete commitment error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to delete commitment.", true);
   }
 }
 

@@ -156,6 +156,22 @@ body {
   background-color: rgba(16, 185, 129, 0.15);
 }
 
+.btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--error-text);
+  color: var(--error-text);
+}
+
+.btn-danger:hover {
+  background-color: var(--error-bg);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 /* Footer / Switch View Links */
 .card-footer {
   text-align: center;
