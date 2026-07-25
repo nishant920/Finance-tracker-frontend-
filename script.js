@@ -539,11 +539,53 @@ function renderTransactions(transactions) {
       <div class="transaction-right">
         <span class="${amountClass}">${formattedAmount}</span>
         <span class="badge ${badgeClass}">${item.transactionType}</span>
+        <button class="btn btn-sm btn-danger btn-delete-transaction" data-id="${item.id}">Delete</button>
       </div>
     `;
 
     transactionsList.appendChild(itemDiv);
   });
+
+  document.querySelectorAll(".btn-delete-transaction").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      handleDeleteTransaction(id);
+    });
+  });
+}
+
+/**
+ * Handles deleting a transaction via DELETE /api/transactions/{id}
+ */
+async function handleDeleteTransaction(transactionId) {
+  hideAlert(dashboardAlert);
+
+  const token = getAuthToken();
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.error || "Failed to delete transaction";
+      showAlert(dashboardAlert, errorMessage, true);
+      return;
+    }
+
+    // Refetch transactions list and free-to-spend balance
+    fetchTransactions();
+    fetchFreeToSpend();
+
+  } catch (error) {
+    console.error("Delete transaction error:", error);
+    showAlert(dashboardAlert, "Unable to connect to server to delete transaction.", true);
+  }
 }
 
 /**
