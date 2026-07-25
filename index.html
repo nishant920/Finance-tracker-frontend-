@@ -83,6 +83,7 @@
          3. DASHBOARD CONTAINER
          ==================================================================== -->
     <div id="dashboard-container" class="hidden">
+      <!-- Balance Hero Card -->
       <div class="card dashboard-card">
         <div class="card-header">
           <p class="balance-label">Free-to-Spend Balance</p>
@@ -105,6 +106,45 @@
           </form>
         </div>
       </div>
+
+      <!-- Commitments Section Card -->
+      <div class="card commitments-card">
+        <div class="section-header">
+          <h3>Commitments</h3>
+          <button id="btn-toggle-add-commitment" class="btn btn-secondary btn-sm">+ Add Commitment</button>
+        </div>
+
+        <!-- Inline Add Commitment Form (Hidden by default) -->
+        <form id="add-commitment-form" class="inline-commitment-form hidden">
+          <div class="form-group">
+            <label for="commitment-name">Name</label>
+            <input type="text" id="commitment-name" placeholder="e.g. Car EMI" required>
+          </div>
+          <div class="form-group">
+            <label for="commitment-amount">Amount</label>
+            <input type="number" id="commitment-amount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="commitment-date">Due Date</label>
+            <input type="date" id="commitment-date" required>
+          </div>
+          <div class="form-group">
+            <label for="commitment-frequency">Frequency</label>
+            <select id="commitment-frequency" required>
+              <option value="MONTHLY">MONTHLY</option>
+              <option value="WEEKLY">WEEKLY</option>
+              <option value="ONE_TIME">ONE_TIME</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Commitment</button>
+        </form>
+
+        <!-- Commitment List Container -->
+        <div id="commitments-list" class="commitments-list">
+          <!-- Dynamically populated via script.js -->
+        </div>
+      </div>
+
     </div>
 
   </div>

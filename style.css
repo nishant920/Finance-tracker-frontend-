@@ -20,6 +20,8 @@
   --error-text: #f87171;       /* Light red text */
   --success-bg: rgba(16, 185, 129, 0.15); /* Green translucent success box */
   --success-text: #34d399;     /* Light green text */
+  --warning-bg: rgba(245, 158, 11, 0.15); /* Amber translucent box */
+  --warning-text: #fbbf24;     /* Light amber text */
   --radius: 12px;              /* Rounded corners */
   --transition: all 0.25s ease-in-out;
 }
@@ -45,7 +47,7 @@ body {
 /* Main Container */
 .app-container {
   width: 100%;
-  max-width: 460px;
+  max-width: 520px;
 }
 
 /* Centered Glassmorphism Card */
@@ -53,7 +55,7 @@ body {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 2.5rem 2rem;
+  padding: 2rem 1.75rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
@@ -76,7 +78,7 @@ body {
 
 /* Form Layout & Inputs */
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.15rem;
 }
 
 .form-group label {
@@ -87,7 +89,8 @@ body {
   margin-bottom: 0.4rem;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--input-bg);
@@ -99,7 +102,8 @@ body {
   transition: var(--transition);
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
@@ -110,7 +114,7 @@ body {
   padding: 0.85rem 1rem;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
@@ -133,6 +137,23 @@ body {
 
 .btn-secondary:hover {
   background-color: var(--input-border);
+}
+
+.btn-sm {
+  width: auto;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.825rem;
+  margin-top: 0;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline:hover {
+  background-color: rgba(16, 185, 129, 0.15);
 }
 
 /* Footer / Switch View Links */
@@ -181,6 +202,7 @@ body {
 /* Dashboard Styling */
 .dashboard-card {
   text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .balance-label {
@@ -222,6 +244,104 @@ body {
   width: auto;
   padding: 0.75rem 1.25rem;
   margin-top: 0;
+}
+
+/* Commitments Section */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.section-header h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.inline-commitment-form {
+  background-color: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.commitments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 1.5rem 0;
+}
+
+/* Commitment Item Card */
+.commitment-item {
+  background-color: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.commitment-info h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.commitment-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.commitment-amount {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.commitment-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-pending {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-paid {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 /* Utility to hide/show views */
