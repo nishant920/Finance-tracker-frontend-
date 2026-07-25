@@ -53,6 +53,12 @@ const btnToggleAddCommitment = document.getElementById("btn-toggle-add-commitmen
 const addTransactionForm = document.getElementById("add-transaction-form");
 const btnToggleAddTransaction = document.getElementById("btn-toggle-add-transaction");
 
+// Risk Warning Modal Elements
+const riskModal = document.getElementById("risk-modal");
+const riskModalMessage = document.getElementById("risk-modal-message");
+const btnCancelRisk = document.getElementById("btn-cancel-risk");
+const btnProceedRisk = document.getElementById("btn-proceed-risk");
+
 // Input Fields
 const loginEmailInput = document.getElementById("login-email");
 const loginPasswordInput = document.getElementById("login-password");
@@ -86,6 +92,9 @@ const dashboardAlert = document.getElementById("dashboard-alert");
 const linkToSignup = document.getElementById("link-to-signup");
 const linkToLogin = document.getElementById("link-to-login");
 
+// Callback storage for proceed action on risk modal
+let pendingProceedCallback = null;
+
 
 // --------------------------------------------------------------------------
 // 3. UI SCREEN SWITCHING & ALERT HELPERS
@@ -98,6 +107,7 @@ function showLoginForm() {
   hideAlert(loginAlert);
   hideAlert(signupAlert);
   hideAlert(dashboardAlert);
+  hideRiskModal();
   signupCard.classList.add("hidden");
   dashboardContainer.classList.add("hidden");
   loginCard.classList.remove("hidden");
@@ -110,6 +120,7 @@ function showSignupForm() {
   hideAlert(loginAlert);
   hideAlert(signupAlert);
   hideAlert(dashboardAlert);
+  hideRiskModal();
   loginCard.classList.add("hidden");
   dashboardContainer.classList.add("hidden");
   signupCard.classList.remove("hidden");
@@ -120,6 +131,7 @@ function showSignupForm() {
  */
 function showDashboardView() {
   hideAlert(dashboardAlert);
+  hideRiskModal();
   loginCard.classList.add("hidden");
   signupCard.classList.add("hidden");
   dashboardContainer.classList.remove("hidden");
@@ -148,6 +160,25 @@ function showAlert(alertElement, message, isError = true) {
 function hideAlert(alertElement) {
   alertElement.style.display = "none";
   alertElement.textContent = "";
+}
+
+/**
+ * Shows the Risk Warning Confirmation Modal
+ * @param {string} message Warning message returned from backend checkSpendRisk
+ * @param {Function} onProceed Callback function to execute if user clicks "Proceed Anyway"
+ */
+function showRiskModal(message, onProceed) {
+  riskModalMessage.textContent = message;
+  pendingProceedCallback = onProceed;
+  riskModal.classList.remove("hidden");
+}
+
+/**
+ * Hides the Risk Warning Confirmation Modal
+ */
+function hideRiskModal() {
+  riskModal.classList.add("hidden");
+  pendingProceedCallback = null;
 }
 
 
@@ -313,7 +344,6 @@ function renderCommitments(commitments) {
     commitmentsList.appendChild(itemDiv);
   });
 
-  // Attach click listeners to "Mark as Paid" buttons
   document.querySelectorAll(".btn-mark-paid").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const id = e.target.getAttribute("data-id");
@@ -321,7 +351,6 @@ function renderCommitments(commitments) {
     });
   });
 
-  // Attach click listeners to "Delete" buttons
   document.querySelectorAll(".btn-delete-commitment").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const id = e.target.getAttribute("data-id");
@@ -434,7 +463,6 @@ async function handleDeleteCommitment(commitmentId) {
       return;
     }
 
-    // Refetch commitments list and free-to-spend balance
     fetchCommitments();
     fetchFreeToSpend();
 
@@ -493,7 +521,6 @@ function renderTransactions(transactions) {
     const sign = isSpend ? "-" : "+";
     const formattedAmount = `${sign}₹${Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     
-    // Format ISO timestamp into readable date & time (e.g. 25 Jul 2026, 08:30 PM)
     const formattedTime = new Date(item.timestamp).toLocaleString('en-IN', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -520,7 +547,7 @@ function renderTransactions(transactions) {
 }
 
 /**
- * Handles recording a new transaction via POST /api/transactions
+ * Main Handler for Adding a Transaction with Spend Risk Check
  */
 async function handleAddTransaction(event) {
   event.preventDefault();
@@ -529,12 +556,49 @@ async function handleAddTransaction(event) {
   const token = getAuthToken();
   if (!token) return;
 
-  const payload = {
-    amount: parseFloat(transactionAmountInput.value),
-    transactionType: transactionTypeSelect.value,
-    category: transactionCategoryInput.value.trim(),
-    note: transactionNoteInput.value.trim() || null
-  };
+  const amount = parseFloat(transactionAmountInput.value);
+  const transactionType = transactionTypeSelect.value;
+  const category = transactionCategoryInput.value.trim();
+  const note = transactionNoteInput.value.trim() || null;
+
+  const payload = { amount, transactionType, category, note };
+
+  // If adding a SPEND transaction, run pre-spend risk check first!
+  if (transactionType === "SPEND") {
+    try {
+      const riskResponse = await fetch(`${API_BASE_URL}/balance/check-risk`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount })
+      });
+
+      if (riskResponse.ok) {
+        const riskData = await riskResponse.json();
+
+        // If transaction creates risk, present the confirmation warning modal!
+        if (riskData.risk) {
+          showRiskModal(riskData.message, () => saveTransaction(payload));
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Risk check error:", err);
+    }
+  }
+
+  // If no risk or transactionType is INCOME, save directly
+  saveTransaction(payload);
+}
+
+/**
+ * Saves a transaction to POST /api/transactions
+ */
+async function saveTransaction(payload) {
+  const token = getAuthToken();
+  if (!token) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/transactions`, {
@@ -556,12 +620,11 @@ async function handleAddTransaction(event) {
     addTransactionForm.reset();
     addTransactionForm.classList.add("hidden");
 
-    // Refetch transactions list and free-to-spend balance (and current balance)
     fetchTransactions();
     fetchFreeToSpend();
 
   } catch (error) {
-    console.error("Add transaction error:", error);
+    console.error("Save transaction error:", error);
     showAlert(dashboardAlert, "Unable to connect to server to record transaction.", true);
   }
 }
@@ -707,6 +770,16 @@ btnToggleAddCommitment.addEventListener("click", () => {
 btnToggleAddTransaction.addEventListener("click", () => {
   hideAlert(dashboardAlert);
   addTransactionForm.classList.toggle("hidden");
+});
+
+// Risk Modal Action Buttons
+btnCancelRisk.addEventListener("click", hideRiskModal);
+
+btnProceedRisk.addEventListener("click", () => {
+  if (pendingProceedCallback) {
+    pendingProceedCallback();
+  }
+  hideRiskModal();
 });
 
 // Run session check when page loads

@@ -184,6 +184,20 @@
 
     </div>
 
+    <!-- Risk Warning Confirmation Modal (Hidden by default) -->
+    <div id="risk-modal" class="modal-backdrop hidden">
+      <div class="card modal-card">
+        <div class="modal-header">
+          <h3>⚠️ Over-Commitment Warning</h3>
+        </div>
+        <p id="risk-modal-message" class="modal-message">This spend eats into your committed money!</p>
+        <div class="modal-actions">
+          <button id="btn-cancel-risk" class="btn btn-secondary">Cancel</button>
+          <button id="btn-proceed-risk" class="btn btn-danger">Proceed Anyway</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Application Logic -->
