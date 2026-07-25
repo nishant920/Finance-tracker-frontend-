@@ -40,6 +40,9 @@ const loginCard = document.getElementById("login-card");
 const signupCard = document.getElementById("signup-card");
 const dashboardContainer = document.getElementById("dashboard-container");
 
+// Header Navigation
+const btnLogout = document.getElementById("btn-logout");
+
 // Forms & Action Controls
 const loginForm = document.getElementById("login-form");
 const signupForm = document.getElementById("signup-form");
@@ -179,6 +182,15 @@ function showRiskModal(message, onProceed) {
 function hideRiskModal() {
   riskModal.classList.add("hidden");
   pendingProceedCallback = null;
+}
+
+/**
+ * Handles logging out the user by clearing localStorage and switching to login view
+ */
+function handleLogout() {
+  removeAuthToken();
+  showLoginForm();
+  showAlert(loginAlert, "Logged out successfully.", false);
 }
 
 
@@ -704,6 +716,9 @@ function checkExistingSession() {
 // --------------------------------------------------------------------------
 // 7. EVENT LISTENERS SETUP
 // --------------------------------------------------------------------------
+
+// Logout handler
+btnLogout.addEventListener("click", handleLogout);
 
 // Switch screens on link click
 linkToSignup.addEventListener("click", showSignupForm);

@@ -215,6 +215,34 @@ body {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+/* Dashboard Top Navigation Bar */
+.dashboard-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding: 0 0.25rem;
+}
+
+.app-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+
+.btn-logout {
+  background-color: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+}
+
+.btn-logout:hover {
+  border-color: var(--error-text);
+  color: var(--error-text);
+  background-color: var(--error-bg);
+}
+
 /* Dashboard Styling */
 .dashboard-card {
   text-align: center;
