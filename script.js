@@ -306,7 +306,7 @@ async function fetchCommitments() {
 }
 
 /**
- * Renders the array of commitments into the DOM list
+ * Renders the array of commitments into the DOM list (shows name, amount, due date, status, mark-as-paid)
  */
 function renderCommitments(commitments) {
   commitmentsList.innerHTML = "";
@@ -334,27 +334,18 @@ function renderCommitments(commitments) {
       <div class="commitment-right">
         <span class="commitment-amount">${formattedAmount}</span>
         <span class="badge ${statusBadgeClass}">${item.status}</span>
-        <div class="action-buttons">
-          ${isPending ? `<button class="btn btn-sm btn-outline btn-mark-paid" data-id="${item.id}">Mark as Paid</button>` : ''}
-          <button class="btn btn-sm btn-danger btn-delete-commitment" data-id="${item.id}">Delete</button>
-        </div>
+        ${isPending ? `<button class="btn btn-sm btn-outline btn-mark-paid" data-id="${item.id}">Mark as Paid</button>` : ''}
       </div>
     `;
 
     commitmentsList.appendChild(itemDiv);
   });
 
+  // Attach click listeners to "Mark as Paid" buttons
   document.querySelectorAll(".btn-mark-paid").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const id = e.target.getAttribute("data-id");
       handleMarkAsPaid(id);
-    });
-  });
-
-  document.querySelectorAll(".btn-delete-commitment").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
-      handleDeleteCommitment(id);
     });
   });
 }
@@ -440,39 +431,6 @@ async function handleMarkAsPaid(commitmentId) {
 }
 
 /**
- * Handles deleting a commitment via DELETE /api/commitments/{id}
- */
-async function handleDeleteCommitment(commitmentId) {
-  hideAlert(dashboardAlert);
-
-  const token = getAuthToken();
-  if (!token) return;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/commitments/${commitmentId}`, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || errorData.error || "Failed to delete commitment";
-      showAlert(dashboardAlert, errorMessage, true);
-      return;
-    }
-
-    fetchCommitments();
-    fetchFreeToSpend();
-
-  } catch (error) {
-    console.error("Delete commitment error:", error);
-    showAlert(dashboardAlert, "Unable to connect to server to delete commitment.", true);
-  }
-}
-
-/**
  * Fetches the user's transaction history from GET /api/transactions
  */
 async function fetchTransactions() {
@@ -504,7 +462,7 @@ async function fetchTransactions() {
 }
 
 /**
- * Renders the array of transactions into the DOM list
+ * Renders the array of transactions into the DOM list (limits to top 10 most recent)
  */
 function renderTransactions(transactions) {
   transactionsList.innerHTML = "";
@@ -514,13 +472,17 @@ function renderTransactions(transactions) {
     return;
   }
 
-  transactions.forEach(item => {
+  // Display top 10 most recent transactions
+  const recentTransactions = transactions.slice(0, 10);
+
+  recentTransactions.forEach(item => {
     const isSpend = item.transactionType === "SPEND";
     const amountClass = isSpend ? "transaction-amount-spend" : "transaction-amount-income";
     const badgeClass = isSpend ? "badge-spend" : "badge-income";
     const sign = isSpend ? "-" : "+";
     const formattedAmount = `${sign}₹${Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     
+    // Format ISO timestamp into readable date & time (e.g. 25 Jul 2026, 08:30 PM)
     const formattedTime = new Date(item.timestamp).toLocaleString('en-IN', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -539,53 +501,11 @@ function renderTransactions(transactions) {
       <div class="transaction-right">
         <span class="${amountClass}">${formattedAmount}</span>
         <span class="badge ${badgeClass}">${item.transactionType}</span>
-        <button class="btn btn-sm btn-danger btn-delete-transaction" data-id="${item.id}">Delete</button>
       </div>
     `;
 
     transactionsList.appendChild(itemDiv);
   });
-
-  document.querySelectorAll(".btn-delete-transaction").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
-      handleDeleteTransaction(id);
-    });
-  });
-}
-
-/**
- * Handles deleting a transaction via DELETE /api/transactions/{id}
- */
-async function handleDeleteTransaction(transactionId) {
-  hideAlert(dashboardAlert);
-
-  const token = getAuthToken();
-  if (!token) return;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || errorData.error || "Failed to delete transaction";
-      showAlert(dashboardAlert, errorMessage, true);
-      return;
-    }
-
-    // Refetch transactions list and free-to-spend balance
-    fetchTransactions();
-    fetchFreeToSpend();
-
-  } catch (error) {
-    console.error("Delete transaction error:", error);
-    showAlert(dashboardAlert, "Unable to connect to server to delete transaction.", true);
-  }
 }
 
 /**

@@ -290,11 +290,39 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.commitments-list,
+.commitments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Internal Scrollable Container for Transactions */
 .transactions-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+/* Custom Scrollbar for Transactions List */
+.transactions-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.transactions-list::-webkit-scrollbar-track {
+  background: var(--input-bg);
+  border-radius: 4px;
+}
+
+.transactions-list::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+.transactions-list::-webkit-scrollbar-thumb:hover {
+  background: var(--input-border);
 }
 
 .empty-state {
