@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Design System & Styling for Personal Finance Tracker
+   ========================================================================== */
+
+/* Import Google Font (Inter for clean financial typography) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* CSS Variables for cohesive dark theme palette */
+:root {
+  --bg-color: #0f172a;           /* Dark slate background */
+  --card-bg: #1e293b;          /* Card background */
+  --card-border: #334155;      /* Subtle border */
+  --primary: #10b981;          /* Emerald green accent */
+  --primary-hover: #059669;    /* Hover emerald */
+  --text-main: #f8fafc;        /* High-contrast white text */
+  --text-muted: #94a3b8;       /* Muted gray text */
+  --input-bg: #0f172a;         /* Dark input field background */
+  --input-border: #475569;     /* Input border */
+  --error-bg: rgba(239, 68, 68, 0.15); /* Red translucent error box */
+  --error-text: #f87171;       /* Light red text */
+  --success-bg: rgba(16, 185, 129, 0.15); /* Green translucent success box */
+  --success-text: #34d399;     /* Light green text */
+  --radius: 12px;              /* Rounded corners */
+  --transition: all 0.25s ease-in-out;
+}
+
+/* Global Reset & Body */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+/* Main Container */
+.app-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Centered Glassmorphism Card */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.card-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.card-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Form Layout & Inputs */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 0.5rem;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #000000;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Footer / Switch View Links */
+.card-footer {
+  text-align: center;
+  margin-top: 1.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.card-footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 0.25rem;
+  cursor: pointer;
+}
+
+.card-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Alert Boxes (Errors and Success Messages) */
+.alert {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+  display: none; /* Hidden by default */
+  line-height: 1.4;
+}
+
+.alert-error {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.alert-success {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Utility to hide/show views */
+.hidden {
+  display: none !important;
+}
+
+/* Dashboard Placeholder (for future prompts) */
+#dashboard-container {
+  width: 100%;
+  max-width: 900px;
+}
