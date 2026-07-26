@@ -2,8 +2,8 @@
 
 A simple, no-framework web client for the Personal Finance Tracker app. Built with plain HTML, CSS, and vanilla JavaScript (fetch API, async/await) — no build step required.
 
-Live app: https://clinquant-bubblegum-a0389d.netlify.app *(update with your stable Netlify URL)*
-Backend repo: [link to backend repo]
+Live App (AWS Deployed): http://16.171.253.225:8081/
+Backend Repo: https://github.com/nishant920/Personal-finance-tracker-.git
 
 ## What this app does
 
