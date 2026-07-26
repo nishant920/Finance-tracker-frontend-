@@ -605,7 +605,7 @@ async function saveTransaction(payload) {
 
 
 // --------------------------------------------------------------------------
-// 5. AUTH HANDLERS (SIGNUP & LOGIN)
+// 5. AUTH HANDLERS (SIGNUP, LOGIN & RESEND VERIFICATION)
 // --------------------------------------------------------------------------
 
 /**
@@ -685,11 +685,48 @@ async function handleLogin(event) {
       }
 
       showAlert(loginAlert, errorMessage, true);
+
+      // If email is unverified, offer inline "Resend Verification Email" button!
+      if (errorMessage.toLowerCase().includes("verify your email")) {
+        const resendContainer = document.createElement("div");
+        resendContainer.style.marginTop = "0.75rem";
+
+        const resendBtn = document.createElement("button");
+        resendBtn.className = "btn btn-sm btn-outline";
+        resendBtn.textContent = "📩 Resend Verification Email";
+        resendBtn.onclick = () => handleResendVerification(email);
+
+        resendContainer.appendChild(resendBtn);
+        loginAlert.appendChild(resendContainer);
+      }
     }
 
   } catch (error) {
     console.error("Login error:", error);
     showAlert(loginAlert, "Unable to connect to backend server. Please check your connection.", true);
+  }
+}
+
+/**
+ * Handles resending verification email via POST /api/auth/resend-verification?email=...
+ */
+async function handleResendVerification(email) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/resend-verification?email=${encodeURIComponent(email)}`, {
+      method: "POST"
+    });
+
+    const message = await response.text();
+
+    if (response.ok) {
+      showAlert(loginAlert, message || "Verification email sent successfully! Please check your inbox.", false);
+    } else {
+      showAlert(loginAlert, message || "Failed to resend verification email.", true);
+    }
+
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    showAlert(loginAlert, "Unable to connect to server to resend verification email.", true);
   }
 }
 
