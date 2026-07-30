@@ -2,8 +2,19 @@
 
 A simple, no-framework web client for the Personal Finance Tracker app. Built with plain HTML, CSS, and vanilla JavaScript (fetch API, async/await) — no build step required.
 
-Live App (AWS Deployed): http://16.171.253.225:8081/
+Live App (AWS Deployed): http://16.171.253.225:8081/  
 Backend Repo: https://github.com/nishant920/Personal-finance-tracker-.git
+
+---
+
+## 🔑 Demo / Direct Login Credentials
+
+To test the live application directly without needing to sign up or verify email:
+
+* **E-mail**: `dummy@gmail.com`
+* **Password**: `password`
+
+---
 
 ## What this app does
 
@@ -39,7 +50,7 @@ frontend/
 The backend API URL is set in `script.js`:
 
 ```javascript
-const API_BASE_URL = "http://<your-backend-host>:8080/api";
+const API_BASE_URL = "http://16.171.253.225:8080/api";
 ```
 
 Update this line to point at your backend:
@@ -50,17 +61,15 @@ Update this line to point at your backend:
 
 1. Make sure the backend is running (see backend repo README) and `API_BASE_URL` in `script.js` matches its address.
 2. Open `index.html` with a local static server — e.g. VS Code's **Live Server** extension (don't open via `file://`, `fetch` behaves inconsistently with it).
-3. Sign up, verify your email (if verification is enabled on the backend), log in, and start using the dashboard.
+3. Sign up, verify your email, or log in directly using `dummy@gmail.com` / `password`.
 
 ## Deployment
 
-Deployed as a static site on **Netlify**:
+Deployed as a static site on **Netlify** / **AWS EC2**:
 - Build command: none
 - Publish directory: `.` (repo root)
 
 Any push to `main` triggers an automatic redeploy.
-
-**Note:** if the backend's public IP changes (e.g. after stopping/restarting the EC2 instance without an Elastic IP), update `API_BASE_URL` in `script.js`, commit, and push to redeploy the frontend with the new address. Also ensure the backend's CORS configuration allows this frontend's deployed origin.
 
 ## API Endpoints Used
 
@@ -71,6 +80,7 @@ All protected endpoints require an `Authorization: Bearer <token>` header, set a
 | `/api/auth/save` | POST | Signup |
 | `/api/auth/login` | POST | Login, returns JWT |
 | `/api/auth/verify` | GET | Email verification |
+| `/api/auth/resend-verification` | POST | Resend email verification token |
 | `/api/balance` | PUT | Set/update current balance |
 | `/api/balance/free-to-spend` | GET | Get free-to-spend figure |
 | `/api/balance/check-risk` | POST | Preview whether a proposed spend is risky |
@@ -81,5 +91,4 @@ All protected endpoints require an `Authorization: Bearer <token>` header, set a
 ## Known Limitations (by design, for hackathon scope)
 
 - Marking a commitment "Paid" updates its status only — it does not automatically log a corresponding transaction or adjust the balance. These are intentionally separate actions.
-- Email verification (if enabled on the backend) requires working SMTP; disable the login gate on the backend if this isn't reliable in your deployment environment.
 - JWT is stored in `localStorage` for session persistence — acceptable for a demo/hackathon context, not hardened against XSS for production use.
