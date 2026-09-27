@@ -45,7 +45,10 @@ export async function handleSignup(event) {
     }
 
     signupForm.reset();
-    showAlert(signupAlert, "Check your email to verify your account, then log in", false);
+    showAlert(signupAlert, "Account created! Check your email to verify your account.", false);
+    
+    // Mount Resend Verification Email button with a 30-second cooldown timer!
+    attachResendButton(signupAlert, email, 30);
 
   } catch (error) {
     console.error("Signup error:", error);
@@ -95,16 +98,7 @@ export async function handleLogin(event) {
 
       // If email is unverified, offer inline "Resend Verification Email" button!
       if (errorMessage.toLowerCase().includes("verify your email")) {
-        const resendContainer = document.createElement("div");
-        resendContainer.style.marginTop = "0.75rem";
-
-        const resendBtn = document.createElement("button");
-        resendBtn.className = "btn btn-sm btn-outline";
-        resendBtn.textContent = "📩 Resend Verification Email";
-        resendBtn.onclick = () => handleResendVerification(email);
-
-        resendContainer.appendChild(resendBtn);
-        loginAlert.appendChild(resendContainer);
+        attachResendButton(loginAlert, email, 0);
       }
     }
 
@@ -115,24 +109,88 @@ export async function handleLogin(event) {
 }
 
 /**
- * Handles resending verification email via POST /api/auth/resend-verification?email=...
+ * Attaches a dynamic "Resend Verification Email" button with a 30-second cooldown timer
  */
-export async function handleResendVerification(email) {
+function attachResendButton(containerElement, email, initialCooldownSeconds = 30) {
+  const existingResend = containerElement.querySelector(".resend-container");
+  if (existingResend) existingResend.remove();
+
+  const resendContainer = document.createElement("div");
+  resendContainer.className = "resend-container";
+  resendContainer.style.marginTop = "0.75rem";
+
+  const resendBtn = document.createElement("button");
+  resendBtn.className = "btn btn-sm btn-outline";
+
+  let cooldown = initialCooldownSeconds;
+
+  function updateButtonState() {
+    if (cooldown > 0) {
+      resendBtn.disabled = true;
+      resendBtn.style.opacity = "0.6";
+      resendBtn.style.cursor = "not-allowed";
+      resendBtn.textContent = `⏳ Resend in ${cooldown}s`;
+    } else {
+      resendBtn.disabled = false;
+      resendBtn.style.opacity = "1";
+      resendBtn.style.cursor = "pointer";
+      resendBtn.textContent = "📩 Resend Verification Email";
+    }
+  }
+
+  updateButtonState();
+
+  if (cooldown > 0) {
+    const timer = setInterval(() => {
+      cooldown--;
+      updateButtonState();
+      if (cooldown <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+  }
+
+  resendBtn.onclick = async () => {
+    if (cooldown > 0) return;
+    await handleResendVerification(email, containerElement);
+    // Restart 30-second cooldown timer after resending
+    attachResendButton(containerElement, email, 30);
+  };
+
+  resendContainer.appendChild(resendBtn);
+  containerElement.appendChild(resendContainer);
+}
+
+/**
+ * Handles resending verification email via POST /api/auth/resend-verification?email=...
+ * Connects directly to backend AuthController: @PostMapping("/resend-verification")
+ */
+export async function handleResendVerification(email, targetAlertElement = loginAlert) {
+  let targetEmail = email;
+
+  if (!targetEmail) {
+    targetEmail = prompt("Enter your email address to resend verification link:");
+    if (!targetEmail || !targetEmail.trim()) return;
+    targetEmail = targetEmail.trim();
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/resend-verification?email=${encodeURIComponent(email)}`, {
+    showAlert(targetAlertElement, "Sending verification email...", false);
+
+    const response = await fetch(`${API_BASE_URL}/auth/resend-verification?email=${encodeURIComponent(targetEmail)}`, {
       method: "POST"
     });
 
     const message = await response.text();
 
     if (response.ok) {
-      showAlert(loginAlert, message || "Verification email sent successfully! Please check your inbox.", false);
+      showAlert(targetAlertElement, message || "Verification email sent successfully! Please check your inbox.", false);
     } else {
-      showAlert(loginAlert, message || "Failed to resend verification email.", true);
+      showAlert(targetAlertElement, message || "Failed to resend verification email.", true);
     }
 
   } catch (error) {
     console.error("Resend verification error:", error);
-    showAlert(loginAlert, "Unable to connect to server to resend verification email.", true);
+    showAlert(targetAlertElement, "Unable to connect to server to resend verification email.", true);
   }
 }
