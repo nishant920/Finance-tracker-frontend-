@@ -6,7 +6,7 @@
 export const API_BASE_URL = 
   (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
     ? "http://localhost:8080/api"
-    : "http://13.48.30.132:8080/api";
+    : "http://16.171.146.241:8080/api";
 
 /**
  * Retrieve the JWT token stored in browser localStorage
