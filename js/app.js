@@ -21,12 +21,10 @@ import {
   handleLogout,
   dashboardAlert
 } from './ui.js';
-import { loginForm, signupForm, handleLogin, handleSignup, handleResendVerification } from './auth.js';
+import { loginForm, signupForm, handleLogin, handleSignup } from './auth.js';
 import { updateBalanceForm, handleUpdateBalance } from './balance.js';
 import { addCommitmentForm, handleAddCommitment } from './commitments.js';
 import { addTransactionForm, handleAddTransaction } from './transactions.js';
-
-const linkResendVerification = document.getElementById("link-resend-verification");
 
 /**
  * Checks for an existing JWT token in localStorage on page load.
@@ -52,10 +50,6 @@ btnLogout.addEventListener("click", handleLogout);
 // Switch screens on link click
 linkToSignup.addEventListener("click", showSignupForm);
 linkToLogin.addEventListener("click", showLoginForm);
-
-if (linkResendVerification) {
-  linkResendVerification.addEventListener("click", () => handleResendVerification());
-}
 
 // Form submit handlers
 signupForm.addEventListener("submit", handleSignup);

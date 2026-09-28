@@ -70,7 +70,7 @@ export async function handleUpdateBalance(event) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/balance`, {
+    const response = await fetch(`${API_BASE_URL}/balance/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

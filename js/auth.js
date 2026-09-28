@@ -95,11 +95,6 @@ export async function handleLogin(event) {
       }
 
       showAlert(loginAlert, errorMessage, true);
-
-      // If email is unverified, offer inline "Resend Verification Email" button!
-      if (errorMessage.toLowerCase().includes("verify your email")) {
-        attachResendButton(loginAlert, email, 0);
-      }
     }
 
   } catch (error) {
@@ -113,7 +108,7 @@ export async function handleLogin(event) {
  */
 function attachResendButton(containerElement, email, initialCooldownSeconds = 30) {
   const existingResend = containerElement.querySelector(".resend-container");
-  if (existingResend) existingResend.remove();
+ // if (existingResend) existingResend.remove();
 
   const resendContainer = document.createElement("div");
   resendContainer.className = "resend-container";
