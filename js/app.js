@@ -21,7 +21,7 @@ import {
   handleLogout,
   dashboardAlert
 } from './ui.js';
-import { loginForm, signupForm, handleLogin, handleSignup } from './auth.js';
+import { loginForm, signupForm, handleLogin, handleSignup, handleDemoLogin } from './auth.js';
 import { updateBalanceForm, handleUpdateBalance } from './balance.js';
 import { addCommitmentForm, handleAddCommitment } from './commitments.js';
 import { addTransactionForm, handleAddTransaction } from './transactions.js';
@@ -54,6 +54,12 @@ linkToLogin.addEventListener("click", showLoginForm);
 // Form submit handlers
 signupForm.addEventListener("submit", handleSignup);
 loginForm.addEventListener("submit", handleLogin);
+
+// One-Click Demo Login handler
+const btnDemoLogin = document.getElementById("btn-demo-login");
+if (btnDemoLogin) {
+  btnDemoLogin.addEventListener("click", handleDemoLogin);
+}
 updateBalanceForm.addEventListener("submit", handleUpdateBalance);
 addCommitmentForm.addEventListener("submit", handleAddCommitment);
 addTransactionForm.addEventListener("submit", handleAddTransaction);

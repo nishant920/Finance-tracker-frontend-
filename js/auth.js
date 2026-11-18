@@ -3,7 +3,7 @@
    ========================================================================== */
 
 import { API_BASE_URL, setAuthToken } from './config.js';
-import { loginAlert, signupAlert, showAlert, hideAlert, showDashboardView } from './ui.js';
+import { loginAlert, signupAlert, dashboardAlert, showAlert, hideAlert, showDashboardView } from './ui.js';
 
 export const loginForm = document.getElementById("login-form");
 export const signupForm = document.getElementById("signup-form");
@@ -100,6 +100,55 @@ export async function handleLogin(event) {
   } catch (error) {
     console.error("Login error:", error);
     showAlert(loginAlert, "Unable to connect to backend server. Please check your connection.", true);
+  }
+}
+
+/**
+ * Handles Instant One-Click Demo Login (Interviewer / Reviewer mode)
+ * Pre-fills and authenticates with dummy@gmail.com / password
+ */
+export async function handleDemoLogin() {
+  hideAlert(loginAlert);
+
+  // Visually populate inputs so reviewers can see the credentials in action
+  loginEmailInput.value = "dummy@gmail.com";
+  loginPasswordInput.value = "password";
+
+  showAlert(loginAlert, "Authenticating with Demo Account...", false);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: "dummy@gmail.com", password: "password" })
+    });
+
+    if (response.ok) {
+      const token = await response.text();
+      setAuthToken(token);
+      console.log("Logged in with demo account successfully!");
+
+      loginForm.reset();
+      showDashboardView();
+      showAlert(dashboardAlert, "✨ Exploring in Demo Mode! (Pre-loaded with sample commitments & balance)", false);
+
+    } else {
+      let errorMessage = "Demo account is not available yet.";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        const errorText = await response.text();
+        if (errorText) errorMessage = errorText;
+      }
+      showAlert(loginAlert, errorMessage, true);
+    }
+
+  } catch (error) {
+    console.error("Demo login error:", error);
+    showAlert(loginAlert, "Unable to connect to backend server. Please make sure backend is running.", true);
   }
 }
 
